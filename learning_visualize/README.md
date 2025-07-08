@@ -118,12 +118,69 @@ Bạn sẽ biết:
 
 ---
 
-## 🔥 Ready cho Giai đoạn 2?
+## 🎨 GIAI ĐOẠN 2: TÙY CHỈNH BIỂU ĐỒ NÂNG CAO (3-4 ngày)
 
-Sau khi master Giai đoạn 1, chúng ta sẽ học:
-- Tùy chỉnh biểu đồ nâng cao
-- Subplots và layouts
-- Biểu đồ chuyên dụng cho ML
+### 🎓 Thứ tự học tập:
+
+5. **[05_labels_titles_advanced.py](05_labels_titles_advanced.py)** - Font styling & LaTeX
+   - Advanced font styling: sizes, weights, colors
+   - LaTeX math symbols và Greek letters
+   - Text positioning và annotations
+   - Legend styling nâng cao
+
+6. **[06_colors_styles_advanced.py](06_colors_styles_advanced.py)** - Colors & Styles
+   - Color systems: hex, RGB, named colors
+   - Custom line patterns và markers
+   - Transparency effects (alpha blending)
+   - Colormaps và custom color schemes
+
+7. **[07_practice_exercises_stage2.py](07_practice_exercises_stage2.py)** - Advanced Practice!
+   - 5 bài tập styling nâng cao
+   - Professional linear regression với gradient
+   - Custom colormaps và subplots
+   - **CHALLENGE: Tái tạo professional visualization!**
+
+8. **[08_solutions_stage2.py](08_solutions_stage2.py)** - Professional Solutions
+   - Solutions với pro techniques
+   - Dashboard-style multi-panel plots
+   - BONUS: Complete ML visualization dashboard
+
+---
+
+## 🎯 Sau khi hoàn thành Giai đoạn 2:
+
+Bạn sẽ biết:
+- ✅ Professional font styling với LaTeX
+- ✅ Advanced color schemes và transparency
+- ✅ Custom line patterns và markers
+- ✅ Gradient effects và colormaps
+- ✅ Multi-panel layouts
+- ✅ **Tạo professional ML visualizations!**
+
+---
+
+## 📊 Tiến độ học tập FULL:
+
+**Giai đoạn 1: Cơ bản**
+- [ ] 01_setup_basics.py
+- [ ] 02_basic_plots.py  
+- [ ] 03_practice_exercises.py (5 bài tập)
+- [ ] 04_solutions.py
+
+**Giai đoạn 2: Nâng cao**
+- [ ] 05_labels_titles_advanced.py
+- [ ] 06_colors_styles_advanced.py
+- [ ] 07_practice_exercises_stage2.py (5 bài tập pro)
+- [ ] 08_solutions_stage2.py + BONUS dashboard
+
+---
+
+## 🔥 Ready cho Giai đoạn 3?
+
+Sau khi master cả 2 giai đoạn, chúng ta sẽ học:
+- Subplots và complex layouts
+- Biểu đồ chuyên dụng cho ML (confusion matrix, ROC curves)
 - Animations và interactive plots
+- Publication-ready figures
 
 **Chúc bạn học tốt! 🚀** 
