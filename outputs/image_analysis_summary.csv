@@ -1,0 +1,5 @@
+Class,Số lượng,Chiều rộng TB,Chiều cao TB,Kích thước min,Kích thước max,Tỷ lệ khung hình TB,Dung lượng TB (KB),Dung lượng min (KB),Dung lượng max (KB),Định dạng,Chế độ màu
+Cats,15,1982,1374,480x270,8192x5464,1.56,783.9,26.8,5958.8,"JPEG, WEBP",RGB
+Dogs,15,994,634,729x400,1920x1097,1.58,99.0,32.4,226.7,JPEG,RGB
+Chickens,15,1115,778,327x443,3024x2708,1.55,317.2,14.2,1590.2,"JPEG, WEBP, PNG","RGB, RGBA"
+Tigers,16,1034,772,500x355,3072x1728,1.35,190.2,62.4,612.2,"JPEG, WEBP, PNG","RGB, P"

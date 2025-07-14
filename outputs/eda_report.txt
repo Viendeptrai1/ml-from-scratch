@@ -1,0 +1,22 @@
+BÁOCÁO PHÂN TÍCH KHÁM PHÁ DỮ LIỆU ẢNH
+==================================================
+
+TỔNG QUAN DATASET:
+- Tổng số ảnh: 61
+- Số lớp: 4
+- Các lớp: cats, dogs, chickens, tigers
+
+THỐNG KÊ KÍCH THƯỚC:
+- Chiều rộng trung bình: 1277 pixels
+- Chiều cao trung bình: 888 pixels
+- Tỷ lệ khung hình trung bình: 1.51
+
+THỐNG KÊ DUNG LƯỢNG:
+- Dung lượng trung bình: 345.0 KB
+- Dung lượng nhỏ nhất: 14.2 KB
+- Dung lượng lớn nhất: 5958.8 KB
+
+ĐỊNH DẠNG FILE:
+- JPEG: 56 files
+- WEBP: 3 files
+- PNG: 2 files

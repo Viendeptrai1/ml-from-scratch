@@ -1,392 +1,398 @@
 """
-Visualization cho machine learning: learning curves, plots, etc.
+Utilities để tạo visualizations cho phân tích dữ liệu ảnh và machine learning
 """
 
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import learning_curve, validation_curve
-from sklearn.metrics import confusion_matrix
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import os
+from typing import List, Dict, Tuple, Optional
+import cv2
+from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.manifold import TSNE
+from sklearn.decomposition import PCA
+import warnings
+warnings.filterwarnings('ignore')
 
-
-# Set style
+# Cấu hình matplotlib
 plt.style.use('seaborn-v0_8')
+plt.rcParams['figure.figsize'] = (12, 8)
+plt.rcParams['font.size'] = 12
 sns.set_palette("husl")
 
-
-def plot_learning_curve(model, X, y, title="Learning Curve", cv=5, 
-                       train_sizes=np.linspace(0.1, 1.0, 10), save_path=None):
-    """
-    Vẽ learning curve để kiểm tra overfitting/underfitting
+class ImageDataVisualizer:
+    """Class để tạo visualizations cho dữ liệu ảnh"""
     
-    Args:
-        model: Model cần vẽ learning curve
-        X: Features
-        y: Labels
-        title: Tiêu đề biểu đồ
-        cv: Số fold cho cross validation
-        train_sizes: Các kích thước training set
-        save_path: Đường dẫn lưu hình
-    """
-    plt.figure(figsize=(10, 6))
-    
-    train_sizes, train_scores, test_scores = learning_curve(
-        model, X, y, cv=cv, n_jobs=-1, train_sizes=train_sizes,
-        scoring='accuracy', random_state=42
-    )
-    
-    train_scores_mean = np.mean(train_scores, axis=1)
-    train_scores_std = np.std(train_scores, axis=1)
-    test_scores_mean = np.mean(test_scores, axis=1)
-    test_scores_std = np.std(test_scores, axis=1)
-    
-    plt.plot(train_sizes, train_scores_mean, 'o-', color='r',
-             label='Training score')
-    plt.fill_between(train_sizes, train_scores_mean - train_scores_std,
-                     train_scores_mean + train_scores_std, alpha=0.1, color='r')
-    
-    plt.plot(train_sizes, test_scores_mean, 'o-', color='g',
-             label='Cross-validation score')
-    plt.fill_between(train_sizes, test_scores_mean - test_scores_std,
-                     test_scores_mean + test_scores_std, alpha=0.1, color='g')
-    
-    plt.xlabel('Training Set Size')
-    plt.ylabel('Accuracy Score')
-    plt.title(title)
-    plt.legend(loc='best')
-    plt.grid(True)
-    plt.tight_layout()
-    
-    if save_path:
-        os.makedirs(os.path.dirname(save_path), exist_ok=True)
-        plt.savefig(save_path, dpi=300, bbox_inches='tight')
-        print(f"Đã lưu learning curve vào {save_path}")
-    
-    plt.show()
-
-
-def plot_validation_curve(model, X, y, param_name, param_range, title="Validation Curve",
-                         cv=5, scoring='accuracy', save_path=None):
-    """
-    Vẽ validation curve để tìm hyperparameter tối ưu
-    
-    Args:
-        model: Model cần vẽ validation curve
-        X: Features
-        y: Labels
-        param_name: Tên parameter cần tune
-        param_range: Range của parameter
-        title: Tiêu đề biểu đồ
-        cv: Số fold cho cross validation
-        scoring: Metric để đánh giá
-        save_path: Đường dẫn lưu hình
-    """
-    plt.figure(figsize=(10, 6))
-    
-    train_scores, test_scores = validation_curve(
-        model, X, y, param_name=param_name, param_range=param_range,
-        cv=cv, scoring=scoring, n_jobs=-1
-    )
-    
-    train_scores_mean = np.mean(train_scores, axis=1)
-    train_scores_std = np.std(train_scores, axis=1)
-    test_scores_mean = np.mean(test_scores, axis=1)
-    test_scores_std = np.std(test_scores, axis=1)
-    
-    plt.plot(param_range, train_scores_mean, 'o-', color='r',
-             label='Training score')
-    plt.fill_between(param_range, train_scores_mean - train_scores_std,
-                     train_scores_mean + train_scores_std, alpha=0.1, color='r')
-    
-    plt.plot(param_range, test_scores_mean, 'o-', color='g',
-             label='Cross-validation score')
-    plt.fill_between(param_range, test_scores_mean - test_scores_std,
-                     test_scores_mean + test_scores_std, alpha=0.1, color='g')
-    
-    plt.xlabel(param_name)
-    plt.ylabel(f'{scoring.title()} Score')
-    plt.title(title)
-    plt.legend(loc='best')
-    plt.grid(True)
-    plt.tight_layout()
-    
-    if save_path:
-        os.makedirs(os.path.dirname(save_path), exist_ok=True)
-        plt.savefig(save_path, dpi=300, bbox_inches='tight')
-        print(f"Đã lưu validation curve vào {save_path}")
-    
-    plt.show()
-
-
-def plot_training_history(history, title="Training History", save_path=None):
-    """
-    Vẽ training history cho Deep Learning model
-    
-    Args:
-        history: Training history từ Keras
-        title: Tiêu đề biểu đồ
-        save_path: Đường dẫn lưu hình
-    """
-    fig, axes = plt.subplots(1, 2, figsize=(15, 5))
-    
-    # Plot accuracy
-    axes[0].plot(history['accuracy'], label='Training Accuracy')
-    if 'val_accuracy' in history:
-        axes[0].plot(history['val_accuracy'], label='Validation Accuracy')
-    axes[0].set_title('Model Accuracy')
-    axes[0].set_xlabel('Epoch')
-    axes[0].set_ylabel('Accuracy')
-    axes[0].legend()
-    axes[0].grid(True)
-    
-    # Plot loss
-    axes[1].plot(history['loss'], label='Training Loss')
-    if 'val_loss' in history:
-        axes[1].plot(history['val_loss'], label='Validation Loss')
-    axes[1].set_title('Model Loss')
-    axes[1].set_xlabel('Epoch')
-    axes[1].set_ylabel('Loss')
-    axes[1].legend()
-    axes[1].grid(True)
-    
-    plt.suptitle(title)
-    plt.tight_layout()
-    
-    if save_path:
-        os.makedirs(os.path.dirname(save_path), exist_ok=True)
-        plt.savefig(save_path, dpi=300, bbox_inches='tight')
-        print(f"Đã lưu training history vào {save_path}")
-    
-    plt.show()
-
-
-def plot_feature_importance(model, feature_names, title="Feature Importance", save_path=None):
-    """
-    Vẽ feature importance cho tree-based models
-    
-    Args:
-        model: Model đã train (tree-based)
-        feature_names: Tên các features
-        title: Tiêu đề biểu đồ
-        save_path: Đường dẫn lưu hình
-    """
-    if not hasattr(model, 'feature_importances_'):
-        print("Model không hỗ trợ feature importance")
-        return
-    
-    importance = model.feature_importances_
-    indices = np.argsort(importance)[::-1]
-    
-    plt.figure(figsize=(10, 8))
-    plt.title(title)
-    plt.barh(range(len(importance)), importance[indices])
-    plt.yticks(range(len(importance)), [feature_names[i] for i in indices])
-    plt.xlabel('Importance Score')
-    plt.gca().invert_yaxis()
-    plt.tight_layout()
-    
-    if save_path:
-        os.makedirs(os.path.dirname(save_path), exist_ok=True)
-        plt.savefig(save_path, dpi=300, bbox_inches='tight')
-        print(f"Đã lưu feature importance vào {save_path}")
-    
-    plt.show()
-
-
-def plot_model_comparison(results_df, metric='CV_Mean', title="Model Comparison", save_path=None):
-    """
-    Vẽ biểu đồ so sánh các model
-    
-    Args:
-        results_df: DataFrame chứa kết quả các model
-        metric: Metric để so sánh
-        title: Tiêu đề biểu đồ
-        save_path: Đường dẫn lưu hình
-    """
-    plt.figure(figsize=(12, 6))
-    
-    bars = plt.bar(results_df['Model'], results_df[metric])
-    plt.title(title)
-    plt.xlabel('Model')
-    plt.ylabel(metric)
-    plt.xticks(rotation=45)
-    
-    # Add value labels on bars
-    for bar in bars:
-        height = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width()/2., height,
-                f'{height:.3f}', ha='center', va='bottom')
-    
-    plt.tight_layout()
-    
-    if save_path:
-        os.makedirs(os.path.dirname(save_path), exist_ok=True)
-        plt.savefig(save_path, dpi=300, bbox_inches='tight')
-        print(f"Đã lưu model comparison vào {save_path}")
-    
-    plt.show()
-
-
-def plot_data_distribution(data, columns, title="Data Distribution", save_path=None):
-    """
-    Vẽ phân phối dữ liệu
-    
-    Args:
-        data: DataFrame chứa dữ liệu
-        columns: List các cột cần vẽ
-        title: Tiêu đề biểu đồ
-        save_path: Đường dẫn lưu hình
-    """
-    n_cols = min(3, len(columns))
-    n_rows = (len(columns) + n_cols - 1) // n_cols
-    
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(15, 5 * n_rows))
-    if n_rows == 1:
-        axes = [axes] if n_cols == 1 else axes
-    else:
-        axes = axes.flatten()
-    
-    for i, col in enumerate(columns):
-        if i < len(axes):
-            if data[col].dtype in ['int64', 'float64']:
-                axes[i].hist(data[col], bins=30, alpha=0.7)
-                axes[i].set_title(f'Distribution of {col}')
+    def __init__(self, figsize: Tuple[int, int] = (15, 10)):
+        """
+        Initialize ImageDataVisualizer
+        
+        Args:
+            figsize: Kích thước mặc định cho figures
+        """
+        self.figsize = figsize
+        
+    def plot_sample_images(self, X: np.ndarray, y: np.ndarray, 
+                          class_names: List[str], n_samples: int = 3):
+        """
+        Hiển thị mẫu ảnh từ mỗi lớp
+        
+        Args:
+            X: Mảng ảnh
+            y: Mảng labels
+            class_names: Tên các lớp
+            n_samples: Số mẫu mỗi lớp
+        """
+        n_classes = len(class_names)
+        fig, axes = plt.subplots(n_classes, n_samples, 
+                                figsize=(4*n_samples, 4*n_classes))
+        fig.suptitle('Mẫu Ảnh Từ Mỗi Lớp', fontsize=16, fontweight='bold')
+        
+        for i, class_name in enumerate(class_names):
+            # Lấy indices của lớp hiện tại
+            class_indices = np.where(y == i)[0]
+            
+            # Lấy n_samples ảnh ngẫu nhiên
+            if len(class_indices) >= n_samples:
+                selected_indices = np.random.choice(class_indices, n_samples, replace=False)
             else:
-                data[col].value_counts().plot(kind='bar', ax=axes[i])
-                axes[i].set_title(f'Count of {col}')
-                axes[i].tick_params(axis='x', rotation=45)
+                selected_indices = class_indices
+            
+            for j, idx in enumerate(selected_indices):
+                if j >= n_samples:
+                    break
+                    
+                img = X[idx]
+                
+                # Chuẩn hóa ảnh để hiển thị
+                if img.max() <= 1.0:
+                    img_display = img
+                else:
+                    img_display = img / 255.0
+                
+                if n_classes == 1:
+                    ax = axes[j]
+                else:
+                    ax = axes[i, j]
+                
+                ax.imshow(img_display)
+                ax.set_title(f'{class_name}\nSample {j+1}')
+                ax.axis('off')
+        
+        plt.tight_layout()
+        plt.show()
     
-    # Hide unused subplots
-    for i in range(len(columns), len(axes)):
-        axes[i].set_visible(False)
+    def plot_data_distribution(self, df: pd.DataFrame):
+        """
+        Vẽ biểu đồ phân bố dữ liệu ảnh
+        
+        Args:
+            df: DataFrame chứa thông tin ảnh
+        """
+        fig, axes = plt.subplots(2, 3, figsize=self.figsize)
+        fig.suptitle('Phân Tích Phân Bố Dữ Liệu Ảnh', fontsize=16, fontweight='bold')
+        
+        # 1. Phân bố số lượng theo lớp
+        class_counts = df['class'].value_counts()
+        axes[0, 0].bar(class_counts.index, class_counts.values, 
+                      color=sns.color_palette("husl", len(class_counts)))
+        axes[0, 0].set_title('Phân Bố Số Lượng Theo Lớp')
+        axes[0, 0].set_xlabel('Lớp')
+        axes[0, 0].set_ylabel('Số Lượng')
+        for i, v in enumerate(class_counts.values):
+            axes[0, 0].text(i, v + 0.05, str(v), ha='center', va='bottom')
+        
+        # 2. Phân bố kích thước
+        axes[0, 1].scatter(df['width'], df['height'], 
+                          c=[sns.color_palette("husl", len(df['class'].unique()))[
+                              list(df['class'].unique()).index(x)] for x in df['class']],
+                          alpha=0.7)
+        axes[0, 1].set_title('Phân Bố Kích Thước (Width vs Height)')
+        axes[0, 1].set_xlabel('Width (pixels)')
+        axes[0, 1].set_ylabel('Height (pixels)')
+        
+        # 3. Histogram tỷ lệ khung hình
+        axes[0, 2].hist(df['aspect_ratio'], bins=15, alpha=0.7, 
+                       color='skyblue', edgecolor='black')
+        axes[0, 2].set_title('Phân Bố Tỷ Lệ Khung Hình')
+        axes[0, 2].set_xlabel('Aspect Ratio')
+        axes[0, 2].set_ylabel('Frequency')
+        
+        # 4. Phân bố dung lượng file
+        axes[1, 0].hist(df['file_size_kb'], bins=15, alpha=0.7, 
+                       color='lightgreen', edgecolor='black')
+        axes[1, 0].set_title('Phân Bố Dung Lượng File')
+        axes[1, 0].set_xlabel('File Size (KB)')
+        axes[1, 0].set_ylabel('Frequency')
+        
+        # 5. Boxplot dung lượng theo lớp
+        sns.boxplot(data=df, x='class', y='file_size_kb', ax=axes[1, 1])
+        axes[1, 1].set_title('Dung Lượng File Theo Lớp')
+        axes[1, 1].set_xlabel('Lớp')
+        axes[1, 1].set_ylabel('File Size (KB)')
+        axes[1, 1].tick_params(axis='x', rotation=45)
+        
+        # 6. Định dạng file
+        format_counts = df['format'].value_counts() if 'format' in df.columns else df['extension'].value_counts()
+        axes[1, 2].pie(format_counts.values, labels=format_counts.index, 
+                      autopct='%1.1f%%', colors=sns.color_palette("Set3"))
+        axes[1, 2].set_title('Phân Bố Định Dạng File')
+        
+        plt.tight_layout()
+        plt.show()
     
-    plt.suptitle(title)
-    plt.tight_layout()
+    def plot_color_analysis(self, images: List[np.ndarray], 
+                           class_names: List[str], titles: List[str] = None):
+        """
+        Phân tích và vẽ histogram màu sắc
+        
+        Args:
+            images: List các ảnh để phân tích
+            class_names: Tên các lớp
+            titles: Tiêu đề cho từng ảnh
+        """
+        n_images = len(images)
+        fig, axes = plt.subplots(n_images, 2, figsize=(12, 4*n_images))
+        fig.suptitle('Phân Tích Màu Sắc', fontsize=16, fontweight='bold')
+        
+        colors = ['red', 'green', 'blue']
+        
+        for i, img in enumerate(images):
+            # Hiển thị ảnh gốc
+            if n_images == 1:
+                ax_img, ax_hist = axes[0], axes[1]
+            else:
+                ax_img, ax_hist = axes[i, 0], axes[i, 1]
+            
+            # Chuẩn hóa ảnh để hiển thị
+            if img.max() <= 1.0:
+                img_display = img
+            else:
+                img_display = img / 255.0
+            
+            ax_img.imshow(img_display)
+            title = titles[i] if titles else f'{class_names[i] if i < len(class_names) else "Image"}'
+            ax_img.set_title(title)
+            ax_img.axis('off')
+            
+            # Tính và vẽ histogram
+            img_uint8 = (img * 255).astype(np.uint8) if img.max() <= 1.0 else img.astype(np.uint8)
+            
+            for j, color in enumerate(colors):
+                hist = cv2.calcHist([img_uint8], [j], None, [256], [0, 256])
+                ax_hist.plot(hist, color=color, alpha=0.7, label=f'{color.capitalize()}')
+            
+            ax_hist.set_title(f'Histogram Màu Sắc - {title}')
+            ax_hist.set_xlabel('Intensity')
+            ax_hist.set_ylabel('Frequency')
+            ax_hist.legend()
+            ax_hist.grid(True, alpha=0.3)
+        
+        plt.tight_layout()
+        plt.show()
     
-    if save_path:
-        os.makedirs(os.path.dirname(save_path), exist_ok=True)
-        plt.savefig(save_path, dpi=300, bbox_inches='tight')
-        print(f"Đã lưu data distribution vào {save_path}")
-    
-    plt.show()
+    def plot_augmentation_examples(self, original_img: np.ndarray, 
+                                  augmented_imgs: List[np.ndarray],
+                                  titles: List[str]):
+        """
+        Hiển thị ví dụ về data augmentation
+        
+        Args:
+            original_img: Ảnh gốc
+            augmented_imgs: List ảnh đã augment
+            titles: Tiêu đề cho từng ảnh
+        """
+        n_imgs = len(augmented_imgs) + 1
+        cols = min(4, n_imgs)
+        rows = (n_imgs + cols - 1) // cols
+        
+        fig, axes = plt.subplots(rows, cols, figsize=(4*cols, 4*rows))
+        fig.suptitle('Data Augmentation Examples', fontsize=16, fontweight='bold')
+        
+        if rows == 1:
+            axes = axes.reshape(1, -1)
+        
+        # Hiển thị ảnh gốc
+        img_display = original_img if original_img.max() <= 1.0 else original_img / 255.0
+        axes[0, 0].imshow(img_display)
+        axes[0, 0].set_title('Original')
+        axes[0, 0].axis('off')
+        
+        # Hiển thị ảnh đã augment
+        for i, (aug_img, title) in enumerate(zip(augmented_imgs, titles)):
+            row = (i + 1) // cols
+            col = (i + 1) % cols
+            
+            img_display = aug_img if aug_img.max() <= 1.0 else aug_img / 255.0
+            axes[row, col].imshow(img_display)
+            axes[row, col].set_title(title)
+            axes[row, col].axis('off')
+        
+        # Ẩn các subplot không sử dụng
+        for i in range(n_imgs, rows * cols):
+            row = i // cols
+            col = i % cols
+            axes[row, col].axis('off')
+        
+        plt.tight_layout()
+        plt.show()
 
+class ModelEvaluationVisualizer:
+    """Class để visualize kết quả đánh giá model"""
+    
+    @staticmethod
+    def plot_confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray, 
+                             class_names: List[str], normalize: bool = False):
+        """
+        Vẽ confusion matrix
+        
+        Args:
+            y_true: True labels
+            y_pred: Predicted labels
+            class_names: Tên các lớp
+            normalize: Có normalize không
+        """
+        cm = confusion_matrix(y_true, y_pred)
+        
+        if normalize:
+            cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+            title = 'Normalized Confusion Matrix'
+            fmt = '.2f'
+        else:
+            title = 'Confusion Matrix'
+            fmt = 'd'
+        
+        plt.figure(figsize=(10, 8))
+        sns.heatmap(cm, annot=True, fmt=fmt, cmap='Blues',
+                   xticklabels=class_names, yticklabels=class_names)
+        plt.title(title)
+        plt.xlabel('Predicted Label')
+        plt.ylabel('True Label')
+        plt.tight_layout()
+        plt.show()
+    
+    @staticmethod
+    def plot_training_history(history: Dict, metrics: List[str] = ['loss', 'accuracy']):
+        """
+        Vẽ biểu đồ training history
+        
+        Args:
+            history: Dictionary chứa training history
+            metrics: List các metrics cần vẽ
+        """
+        n_metrics = len(metrics)
+        fig, axes = plt.subplots(1, n_metrics, figsize=(6*n_metrics, 5))
+        if n_metrics == 1:
+            axes = [axes]
+        
+        for i, metric in enumerate(metrics):
+            if metric in history:
+                axes[i].plot(history[metric], label=f'Training {metric}')
+                if f'val_{metric}' in history:
+                    axes[i].plot(history[f'val_{metric}'], label=f'Validation {metric}')
+                
+                axes[i].set_title(f'{metric.capitalize()} Over Epochs')
+                axes[i].set_xlabel('Epochs')
+                axes[i].set_ylabel(metric.capitalize())
+                axes[i].legend()
+                axes[i].grid(True)
+        
+        plt.tight_layout()
+        plt.show()
+    
+    @staticmethod
+    def plot_classification_report(y_true: np.ndarray, y_pred: np.ndarray, 
+                                  class_names: List[str]):
+        """
+        Hiển thị classification report dạng heatmap
+        
+        Args:
+            y_true: True labels
+            y_pred: Predicted labels
+            class_names: Tên các lớp
+        """
+        from sklearn.metrics import precision_recall_fscore_support
+        
+        precision, recall, f1, _ = precision_recall_fscore_support(y_true, y_pred, average=None)
+        
+        # Tạo DataFrame cho heatmap
+        metrics_df = pd.DataFrame({
+            'Precision': precision,
+            'Recall': recall,
+            'F1-Score': f1
+        }, index=class_names)
+        
+        plt.figure(figsize=(8, 6))
+        sns.heatmap(metrics_df.T, annot=True, fmt='.3f', cmap='RdYlBu_r',
+                   cbar_kws={'label': 'Score'})
+        plt.title('Classification Metrics by Class')
+        plt.xlabel('Classes')
+        plt.ylabel('Metrics')
+        plt.tight_layout()
+        plt.show()
+        
+        # In text report
+        print("\nDetailed Classification Report:")
+        print(classification_report(y_true, y_pred, target_names=class_names))
 
-def plot_correlation_matrix(data, title="Correlation Matrix", save_path=None):
+def plot_feature_visualization(X: np.ndarray, y: np.ndarray, 
+                              class_names: List[str], method: str = 'tsne'):
     """
-    Vẽ correlation matrix
+    Visualize features sử dụng dimensionality reduction
     
     Args:
-        data: DataFrame chứa dữ liệu
-        title: Tiêu đề biểu đồ
-        save_path: Đường dẫn lưu hình
-    """
-    plt.figure(figsize=(12, 10))
-    
-    # Calculate correlation matrix
-    numeric_data = data.select_dtypes(include=[np.number])
-    corr_matrix = numeric_data.corr()
-    
-    # Create heatmap
-    mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
-    sns.heatmap(corr_matrix, mask=mask, annot=True, fmt='.2f', 
-                center=0, square=True, cmap='coolwarm')
-    
-    plt.title(title)
-    plt.tight_layout()
-    
-    if save_path:
-        os.makedirs(os.path.dirname(save_path), exist_ok=True)
-        plt.savefig(save_path, dpi=300, bbox_inches='tight')
-        print(f"Đã lưu correlation matrix vào {save_path}")
-    
-    plt.show()
-
-
-def create_interactive_plot(data, x_col, y_col, color_col=None, title="Interactive Plot"):
-    """
-    Tạo biểu đồ tương tác với Plotly
-    
-    Args:
-        data: DataFrame chứa dữ liệu
-        x_col: Cột cho trục x
-        y_col: Cột cho trục y
-        color_col: Cột cho màu sắc
-        title: Tiêu đề biểu đồ
-    
-    Returns:
-        plotly figure
-    """
-    if color_col:
-        fig = px.scatter(data, x=x_col, y=y_col, color=color_col, title=title)
-    else:
-        fig = px.scatter(data, x=x_col, y=y_col, title=title)
-    
-    fig.update_layout(
-        xaxis_title=x_col,
-        yaxis_title=y_col,
-        hovermode='closest'
-    )
-    
-    return fig
-
-
-def plot_class_distribution(y, class_names=None, title="Class Distribution", save_path=None):
-    """
-    Vẽ phân phối các class
-    
-    Args:
+        X: Feature matrix
         y: Labels
-        class_names: Tên các class
-        title: Tiêu đề biểu đồ
-        save_path: Đường dẫn lưu hình
+        class_names: Tên các lớp
+        method: Phương pháp giảm chiều ('tsne', 'pca')
     """
-    plt.figure(figsize=(10, 6))
+    # Flatten images nếu cần
+    if len(X.shape) > 2:
+        X_flat = X.reshape(X.shape[0], -1)
+    else:
+        X_flat = X
     
-    unique, counts = np.unique(y, return_counts=True)
+    # Áp dụng dimensionality reduction
+    if method.lower() == 'tsne':
+        reducer = TSNE(n_components=2, random_state=42)
+        title = 't-SNE Visualization'
+    elif method.lower() == 'pca':
+        reducer = PCA(n_components=2)
+        title = 'PCA Visualization'
+    else:
+        raise ValueError("Method phải là 'tsne' hoặc 'pca'")
     
-    if class_names is None:
-        class_names = [f'Class {i}' for i in unique]
+    print(f"Applying {method.upper()}...")
+    X_reduced = reducer.fit_transform(X_flat)
     
-    bars = plt.bar(class_names, counts)
-    plt.title(title)
-    plt.xlabel('Class')
-    plt.ylabel('Count')
-    plt.xticks(rotation=45)
+    # Vẽ biểu đồ
+    plt.figure(figsize=(12, 8))
+    colors = sns.color_palette("husl", len(class_names))
     
-    # Add count labels on bars
-    for bar, count in zip(bars, counts):
-        height = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width()/2., height,
-                f'{count}', ha='center', va='bottom')
+    for i, class_name in enumerate(class_names):
+        mask = y == i
+        plt.scatter(X_reduced[mask, 0], X_reduced[mask, 1], 
+                   c=[colors[i]], label=class_name, alpha=0.7, s=60)
     
+    plt.title(f'{title} of Image Features')
+    plt.xlabel('Component 1')
+    plt.ylabel('Component 2')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    
-    if save_path:
-        os.makedirs(os.path.dirname(save_path), exist_ok=True)
-        plt.savefig(save_path, dpi=300, bbox_inches='tight')
-        print(f"Đã lưu class distribution vào {save_path}")
-    
     plt.show()
 
-
-def save_all_plots(figures_dict, save_dir="outputs/figures"):
+def save_all_plots(output_dir: str = '../outputs/figures'):
     """
-    Lưu tất cả biểu đồ vào thư mục
+    Lưu tất cả các plots đã tạo
     
     Args:
-        figures_dict: Dict chứa tên và figure
-        save_dir: Thư mục lưu
+        output_dir: Thư mục output
     """
-    os.makedirs(save_dir, exist_ok=True)
+    import os
+    os.makedirs(output_dir, exist_ok=True)
     
-    for name, fig in figures_dict.items():
-        save_path = os.path.join(save_dir, f"{name}.png")
-        fig.savefig(save_path, dpi=300, bbox_inches='tight')
-        print(f"Đã lưu {name} vào {save_path}")
-    
-    print(f"\nĐã lưu tất cả biểu đồ vào thư mục: {save_dir}") 
+    # Lưu current figure
+    plt.savefig(os.path.join(output_dir, 'current_plot.png'), 
+                dpi=300, bbox_inches='tight')
+    print(f"Plot saved to {output_dir}") 
