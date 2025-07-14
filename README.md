@@ -12,8 +12,8 @@ Dự án này xây dựng một mô hình học máy để phân loại hình �
 - [x] Cài đặt các thư viện cần thiết từ requirements.txt.
 
 #### [ ] Thu thập Dữ liệu (data/raw):
-- [ ] Tìm và tải xuống bộ dữ liệu hình ảnh cho 4 loài động vật.
-- [ ] Tổ chức dữ liệu gốc vào các thư mục con tương ứng: data/raw/dogs, data/raw/cats, data/raw/lions, data/raw/chickens.
+- [x] Tìm và tải xuống bộ dữ liệu hình ảnh cho 4 loài động vật.
+- [x] Tổ chức dữ liệu gốc vào các thư mục con tương ứng: data/raw/dogs, data/raw/cats, data/raw/lions, data/raw/chickens.
 
 #### [ ] Tiền xử lý và Phân chia Dữ liệu (src/data_utils.py):
 - [ ] Viết script để chia dữ liệu thành các tập train, validation, và test.
